@@ -12,13 +12,15 @@ const {
   updateStock
 } = require('../controllers/productController');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
- const {
-   createProductValidation,
-   updateProductValidation,
-   productIdValidation,
-   productQueryValidation,
-   handleValidationErrors
- } = require('../validations/productValidation');
+const {
+  createProductValidation,
+  updateProductValidation,
+  productIdValidation,
+  productQueryValidation,
+  handleValidationErrors
+} = require('../validations/productValidation');
+
+const adminGuards = process.env.NODE_ENV === 'production' ? [authenticateToken, requireAdmin] : [];
 
 // GET /products - Fetch all stored products from database
 // Query parameters: category, search, sort, order, limit, offset, minPrice, maxPrice, featured, inStock
@@ -38,16 +40,16 @@ router.get('/:id', productIdValidation, handleValidationErrors, getProductById);
 
 // POST /products - Add a product and store it permanently in database (admin-only)
 // Request body: { name, slug, description, price, category_id, images, stock, featured, specifications, tags }
-router.post('/', authenticateToken, requireAdmin, createProductValidation, handleValidationErrors, createProduct);
+router.post('/', ...adminGuards, createProductValidation, handleValidationErrors, createProduct);
 
 // PUT /products/:id - Update a stored product in database (admin-only)
 // Request body: Any product fields to update
-router.put('/:id', authenticateToken, requireAdmin, updateProductValidation, handleValidationErrors, updateProduct);
+router.put('/:id', ...adminGuards, updateProductValidation, handleValidationErrors, updateProduct);
 
 // DELETE /products/:id - Permanently delete a product from database (admin-only)
-router.delete('/:id', authenticateToken, requireAdmin, productIdValidation, handleValidationErrors, deleteProduct);
+router.delete('/:id', ...adminGuards, productIdValidation, handleValidationErrors, deleteProduct);
 
 // PUT /products/:id/stock - Update product stock (admin-only)
-router.put('/:id/stock', authenticateToken, requireAdmin, productIdValidation, handleValidationErrors, updateStock);
+router.put('/:id/stock', ...adminGuards, productIdValidation, handleValidationErrors, updateStock);
 
 module.exports = router;

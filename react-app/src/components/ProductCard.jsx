@@ -34,7 +34,7 @@ const ProductCard = ({ product, isInWishlist, onAddToCart, onToggleWishlist, onO
     <div className="product-card fade-in">
       <div className="product-image" onClick={() => onOpenModal(product.id)}>
         <LazyImage
-          src={product.images[0]}
+          src={product.images?.[0] || '/placeholder-product.jpg'}
           alt={product.name}
           className="product-img"
           ref={imgRef}
@@ -51,7 +51,7 @@ const ProductCard = ({ product, isInWishlist, onAddToCart, onToggleWishlist, onO
             className={`action-btn ${isInWishlist ? 'active' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
-              try { const rect = imgRef.current?.getBoundingClientRect(); onFly && onFly({ src: product.images[0], startRect: rect, target: 'wishlist' }); } catch (err) {}
+              try { const rect = imgRef.current?.getBoundingClientRect(); onFly && onFly({ src: product.images?.[0] || '/placeholder-product.jpg', startRect: rect, target: 'wishlist' }); } catch (err) {}
               onToggleWishlist(product.id);
             }}
             aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -70,14 +70,14 @@ const ProductCard = ({ product, isInWishlist, onAddToCart, onToggleWishlist, onO
             className="action-btn"
             onClick={(e) => {
               e.stopPropagation();
-              try { const rect = imgRef.current?.getBoundingClientRect(); onFly && onFly({ src: product.images[0], startRect: rect, target: 'cart' }); } catch (err) {}
+              try { const rect = imgRef.current?.getBoundingClientRect(); onFly && onFly({ src: product.images?.[0] || '/placeholder-product.jpg', startRect: rect, target: 'cart' }); } catch (err) {}
               onAddToCart(product.id);
             }}
             aria-label="Add to cart"
             title="Add to cart"
           >
             <LazyImage 
-              src={product.images[0]}
+              src={product.images?.[0] || '/placeholder-product.jpg'}
               alt={product.name}
               className="product-img"
             />

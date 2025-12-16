@@ -11,11 +11,9 @@ import { useAuth } from './context/AuthContext';
 import { scrollToSection } from './utils/helpers';
 import { useOptimisticCart } from './hooks/useOptimisticCart';
 import { useDataPreloader } from './hooks/useDataPreloader';
-import { supabase, 
-  getProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
+import { productsAPI } from './services/api';
+import { useSearch } from './hooks/useSearch';
+import { 
   getCartItems, 
   addToCart as addToCartDB, 
   updateCartItemQuantity as updateCartItemQuantityDB,
@@ -29,7 +27,6 @@ import { supabase,
   getUserPreference,
   setUserPreference
 } from './lib/supabase';
-import { useSearch } from './hooks/useSearch';
 
 // Lazy load components for code splitting
 const Header = lazy(() => import('./components/Header'));
@@ -104,10 +101,10 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const data = await getProducts();
+      const data = await productsAPI.getProducts();
       setProducts(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error('Failed to load products from Supabase:', e);
+      console.error('Failed to load products from backend:', e);
       setProducts([]);
       toast.error('Failed to load products');
     }
@@ -482,7 +479,7 @@ function App() {
   // Admin functions
   const handleAddProduct = async (product) => {
     try {
-      await createProduct(product);
+      await productsAPI.createProduct(product);
       await fetchProducts();
       toast.success('Product added successfully!');
     } catch (e) {
@@ -493,7 +490,7 @@ function App() {
 
   const handleUpdateProduct = async (productId, updates) => {
     try {
-      await updateProduct(productId, updates);
+      await productsAPI.updateProduct(productId, updates);
       await fetchProducts();
       toast.success('Product updated successfully!');
     } catch (e) {
@@ -504,7 +501,7 @@ function App() {
 
   const handleDeleteProduct = async (productId) => {
     try {
-      await deleteProduct(productId);
+      await productsAPI.deleteProduct(productId);
       await fetchProducts();
       toast.info('Product deleted');
     } catch (e) {

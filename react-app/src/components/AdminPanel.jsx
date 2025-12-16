@@ -55,8 +55,10 @@ const AdminPanel = ({ isOpen, onClose, products, orders, onAddProduct, onUpdateP
 
   const handleAddProduct = (e) => {
     e.preventDefault();
+    const images = (newProduct.images || []).map(v => String(v || '').trim()).filter(Boolean);
     const product = {
       ...newProduct,
+      images,
       price: parseFloat(newProduct.price),
       featured: false
     };
@@ -74,7 +76,7 @@ const AdminPanel = ({ isOpen, onClose, products, orders, onAddProduct, onUpdateP
       category: product.category,
       price: product.price.toString(),
       description: product.description || '',
-      images: product.images || [''],
+      images: (Array.isArray(product.images) && product.images.length > 0) ? product.images : [''],
       inStock: product.inStock
     });
     setActiveTab('edit');
@@ -82,12 +84,13 @@ const AdminPanel = ({ isOpen, onClose, products, orders, onAddProduct, onUpdateP
 
   const handleUpdateProduct = (e) => {
     e.preventDefault();
+    const images = (editProduct.images || []).map(v => String(v || '').trim()).filter(Boolean);
     const updatedProduct = {
       name: editProduct.name,
       category: editProduct.category,
       price: parseFloat(editProduct.price),
       description: editProduct.description,
-      images: editProduct.images,
+      images,
       inStock: editProduct.inStock
     };
     onUpdateProduct(editingProduct.id, updatedProduct);

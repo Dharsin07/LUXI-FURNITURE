@@ -46,26 +46,26 @@ export const authAPI = {
 export const productsAPI = {
   getProducts: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return apiCall(`/products${queryString ? `?${queryString}` : ''}`);
+    return apiCall(`/products${queryString ? `?${queryString}` : ''}`).then((res) => res?.data ?? res);
   },
   
-  getProductById: (id) => apiCall(`/products/${id}`),
+  getProductById: (id) => apiCall(`/products/${id}`).then((res) => res?.data ?? res),
   
-  getCategories: () => apiCall('/products/categories'),
+  getCategories: () => apiCall('/products/categories').then((res) => res?.data ?? res),
   
   createProduct: (productData) => apiCall('/products', {
     method: 'POST',
     body: JSON.stringify(productData)
-  }),
+  }).then((res) => res?.data ?? res),
   
   updateProduct: (id, productData) => apiCall(`/products/${id}`, {
     method: 'PUT',
     body: JSON.stringify(productData)
-  }),
+  }).then((res) => res?.data ?? res),
   
   deleteProduct: (id) => apiCall(`/products/${id}`, {
     method: 'DELETE'
-  })
+  }).then((res) => res?.data ?? res)
 };
 
 // Cart API

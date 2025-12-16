@@ -51,7 +51,11 @@ app.use(express.urlencoded({ extended: true }));
 // Add caching headers for static data
 app.use('/api/products', (req, res, next) => {
   if (req.method === 'GET') {
-    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes cache
+    if (process.env.NODE_ENV === 'production') {
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutes cache
+    } else {
+      res.set('Cache-Control', 'no-store');
+    }
   }
   next();
 });

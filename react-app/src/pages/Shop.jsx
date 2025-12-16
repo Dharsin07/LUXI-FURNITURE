@@ -11,7 +11,7 @@ const Shop = ({ products = [], wishlist = [], onAddToCart, onToggleWishlist, onO
 
   const featured = products.filter(p => p.featured);
   const seasonal = products.filter(p => p.originalPrice && p.originalPrice > p.price);
-  const collections = Array.from(new Set(products.map(p => p.category)));
+  const collections = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
 
   // A small helper to sort an array by the requested mode.
   const sortList = useCallback((list, mode) => {
@@ -63,7 +63,7 @@ const Shop = ({ products = [], wishlist = [], onAddToCart, onToggleWishlist, onO
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.25rem' }}>
             <select aria-label="Filter category" className="filter-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
               <option value="">All Categories</option>
-              {collections.map(c => <option key={c} value={c}>{c.replace('-', ' ')}</option>)}
+              {collections.map(c => <option key={c} value={c}>{c?.replace('-', ' ') || c}</option>)}
             </select>
 
             <select aria-label="Sort products" className="filter-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -99,7 +99,7 @@ const Shop = ({ products = [], wishlist = [], onAddToCart, onToggleWishlist, onO
               {collections.map(col => (
                 <div key={col} className="collection-card">
                   <div className="collection-content">
-                    <h3>{col.replace('-', ' ')}</h3>
+                    <h3>{col?.replace('-', ' ') || col}</h3>
                     <p className="collection-count">{products.filter(p=>p.category===col).length} items</p>
                     <button className="btn btn-outline" onClick={() => navigate(`/collection/${col}`)}>View Collection</button>
                   </div>
