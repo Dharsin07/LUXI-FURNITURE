@@ -213,6 +213,7 @@ const Header = ({
                   <li><Link to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link></li>
                   <li><Link to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></li>
                   <li><Link to="/payments" onClick={() => setProfileOpen(false)}>Payment Methods</Link></li>
+                  {isAdmin() && <li><Link to="/dashboard" onClick={() => setProfileOpen(false)}>User Dashboard</Link></li>}
                   <li><hr style={{ margin: '0.5rem 0', border: 'none', borderTop: '1px solid var(--medium-gray)' }} /></li>
                   <li><button onClick={handleLogout} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '0.6rem 1rem', cursor: 'pointer', color: 'var(--charcoal)' }}>Logout</button></li>
                 </ul>

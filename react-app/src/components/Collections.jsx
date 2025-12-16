@@ -42,19 +42,19 @@ const Collections = () => {
               className="collection-card fade-in" 
               role="presentation"
             >
-              <img
-                src={collection.image}
-                alt={collection.title}
-                className="collection-bg"
-                loading="eager"
-              />
+              <div className="collection-image">
+                <img
+                  src={collection.image}
+                  alt={collection.title}
+                  loading="eager"
+                />
+              </div>
               <div className="collection-content">
                 <h3>{collection.title}</h3>
                 <p>{collection.description}</p>
                 <Link
                   to={`/collection/${collection.category}`}
                   className="btn btn-secondary"
-                  onClick={() => onFilterProducts && onFilterProducts(collection.category)}
                 >
                   View Collection
                 </Link>

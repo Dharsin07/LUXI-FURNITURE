@@ -48,6 +48,7 @@ const OrderHistory = lazy(() => import('./pages/OrderHistory'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const ReviewModal = lazy(() => import('./components/ReviewModal'));
+const UserDashboard = lazy(() => import('./components/UserDashboard'));
 const Footer = lazy(() => import('./components/Footer'));
 const CartSidebar = lazy(() => import('./components/CartSidebar'));
 const ProductModal = lazy(() => import('./components/ProductModal'));
@@ -628,6 +629,7 @@ function App() {
           {/* Profile & account pages */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/addresses" element={<Addresses />} />
