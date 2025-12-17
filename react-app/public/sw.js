@@ -18,6 +18,11 @@ self.addEventListener('install', event => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', event => {
+  // Skip caching for API calls - let them go through normally
+  if (event.request.url.includes('/api/')) {
+    return fetch(event.request);
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -29,7 +34,11 @@ self.addEventListener('fetch', event => {
         // Clone the request
         const fetchRequest = event.request.clone();
 
-        return fetch(fetchRequest).then(
+        return fetch(fetchRequest).catch(error => {
+          // Network error handling - return cached version or error page
+          console.log('Network error, returning cached version if available');
+          return caches.match(event.request);
+        }).then(
           response => {
             // Check if valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
