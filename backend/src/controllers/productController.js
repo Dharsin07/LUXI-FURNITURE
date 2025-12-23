@@ -89,8 +89,9 @@ const createProduct = async (req, res) => {
         message: error.message
       });
     }
-    
-    res.status(500).json({
+
+    const status = error.status || 500;
+    res.status(status).json({
       success: false,
       error: 'Failed to create product',
       message: error.message
@@ -126,8 +127,9 @@ const updateProduct = async (req, res) => {
         message: error.message
       });
     }
-    
-    res.status(500).json({
+
+    const status = error.status || 500;
+    res.status(status).json({
       success: false,
       error: 'Failed to update product',
       message: error.message
@@ -155,8 +157,9 @@ const deleteProduct = async (req, res) => {
         message: error.message
       });
     }
-    
-    res.status(500).json({
+
+    const status = error.status || 500;
+    res.status(status).json({
       success: false,
       error: 'Failed to delete product',
       message: error.message

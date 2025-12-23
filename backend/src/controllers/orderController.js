@@ -1,89 +1,76 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+// Temporary in-memory orders storage (until database is set up)
+const tempOrdersStorage = new Map(); // userId -> orders
 
 const getOrders = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const orders = await prisma.order.findMany({
-      where: { userId },
-      include: {
-        items: {
-          include: {
-            product: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    // Temporarily use a fixed user ID for testing (remove this when authentication is implemented)
+    const userId = req.user?.uid || req.user?.id || 'test-user-id';
+    
+    console.log('Getting orders for user:', userId);
+    
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'User not authenticated' 
+      });
+    }
+
+    // Use temporary in-memory storage
+    const orders = tempOrdersStorage.get(userId) || [];
+    console.log('Found orders:', orders);
 
     res.json({ 
       success: true, 
-      data: orders.map(order => ({
-        ...order,
-        items: order.items.map(item => ({
-          id: item.id,
-          name: item.product.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.product.images?.[0] || '/placeholder.jpg'
-        }))
-      }))
+      data: orders
     });
   } catch (error) {
-    console.error('Get orders error:', error);
-    res.status(500).json({ success: false, error: 'Failed to get orders' });
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch orders' 
+    });
   }
 };
 
 const createOrder = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.uid || req.user?.id || 'test-user-id';
     const { items, totalAmount, shippingAddress } = req.body;
+
+    console.log('Creating order for user:', userId);
+    console.log('Order data:', { items, totalAmount, shippingAddress });
 
     if (!items || items.length === 0) {
       return res.status(400).json({ success: false, error: 'No items in order' });
     }
 
-    const order = await prisma.order.create({
-      data: {
-        userId,
-        totalAmount,
-        status: 'pending',
-        shippingAddress,
-        items: {
-          create: items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        }
-      },
-      include: {
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
-    });
-
-    // Clear user cart after order creation
-    await prisma.cartItem.deleteMany({
-      where: { userId }
-    });
+    // Get or create user's orders
+    if (!tempOrdersStorage.has(userId)) {
+      tempOrdersStorage.set(userId, []);
+    }
+    
+    const orders = tempOrdersStorage.get(userId);
+    
+    // Create new order
+    const order = {
+      id: Date.now(),
+      userId,
+      items,
+      totalAmount,
+      status: 'pending',
+      shippingAddress,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    orders.push(order);
+    tempOrdersStorage.set(userId, orders);
+    
+    console.log('Order created successfully:', order);
 
     res.status(201).json({ 
       success: true, 
-      data: {
-        ...order,
-        items: order.items.map(item => ({
-          id: item.id,
-          name: item.product.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.product.images?.[0] || '/placeholder.jpg'
-        }))
-      }
+      data: order
     });
   } catch (error) {
     console.error('Create order error:', error);

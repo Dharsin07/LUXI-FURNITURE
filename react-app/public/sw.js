@@ -20,7 +20,8 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   // Skip caching for API calls - let them go through normally
   if (event.request.url.includes('/api/')) {
-    return fetch(event.request);
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   event.respondWith(

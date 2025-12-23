@@ -45,12 +45,10 @@ const Checkout = ({ isOpen, cart, cartTotal, onClose, onCompleteOrder }) => {
     // Open GPay/PhonePe app
     window.location.href = upiUrl;
     
-    // Simulate payment completion after delay
-    setTimeout(() => {
-      toast.success('Payment completed successfully!');
-      onCompleteOrder(formData);
-      onClose();
-    }, 3000);
+    // Show immediate success notification
+    toast.success('Payment completed successfully!');
+    onCompleteOrder(formData);
+    onClose();
   };
 
   const handleSubmit = (e) => {

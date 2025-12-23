@@ -18,13 +18,31 @@ const apiCall = async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      let errorData = {};
+      try {
+        errorData = await response.json();
+      } catch (_) {
+        errorData = {};
+      }
+
+      let message = errorData?.message || errorData?.error;
+
+      if (!message && Array.isArray(errorData?.details) && errorData.details.length > 0) {
+        message = errorData.details
+          .map((d) => d?.message)
+          .filter(Boolean)
+          .join(', ');
+      }
+
+      if (!message) {
+        message = `HTTP ${response.status}: ${response.statusText}`;
+      }
+
+      throw new Error(message);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('API Error:', error);
     throw error;
   }
 };
@@ -76,7 +94,7 @@ export const cartAPI = {
   
   addToCart: (productId, quantity = 1) => apiCall('/cart', {
     method: 'POST',
-    body: JSON.stringify({ product_id: productId, quantity })
+    body: JSON.stringify({ productId, quantity })
   }),
   
   updateCartItemQuantity: (productId, quantity) => apiCall(`/cart/${productId}`, {

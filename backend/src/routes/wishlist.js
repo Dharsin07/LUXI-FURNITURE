@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   getWishlistItems,
   addToWishlist,
-  removeFromWishlist
+  removeFromWishlist,
+  toggleWishlist
 } = require('../controllers/wishlistController');
 // const { authenticateToken } = require('../middleware/auth'); // Temporarily disabled
 
@@ -12,6 +13,7 @@ const {
 
 router.get('/', getWishlistItems);
 router.post('/', addToWishlist);
+router.post('/toggle', toggleWishlist);
 router.delete('/:product_id', removeFromWishlist);
 
 module.exports = router;

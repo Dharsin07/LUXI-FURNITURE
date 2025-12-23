@@ -28,10 +28,11 @@ class ProductService {
     return data?.id || null;
   }
 
-  async normalizeWritePayload(payload = {}) {
+  async normalizeWritePayload(payload = {}, options = {}) {
     const next = { ...payload };
+    const { generateSlug = true } = options;
 
-    if (!next.slug && next.name) {
+    if (generateSlug && !next.slug && next.name) {
       next.slug = this.slugifyName(next.name);
     }
 
@@ -150,7 +151,7 @@ class ProductService {
 
   // Create new product
   async createProduct(productData) {
-    const writeData = await this.normalizeWritePayload(productData);
+    const writeData = await this.normalizeWritePayload(productData, { generateSlug: true });
 
     // Check if slug already exists
     const existingProduct = await this.getProductBySlug(writeData.slug);
@@ -165,20 +166,20 @@ class ProductService {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .select(`
-        *,
-        categories (
-          name,
-          slug
-        )
-      `)
-      .single();
+      .select('id');
 
     if (error) {
       throw new Error(`Failed to create product: ${error.message}`);
     }
 
-    return data;
+    const insertedId = Array.isArray(data) ? data[0]?.id : data?.id;
+    if (!insertedId) {
+      const err = new Error('Insert was blocked (likely RLS). Add SUPABASE_SERVICE_ROLE_KEY or disable RLS for products.');
+      err.status = 403;
+      throw err;
+    }
+
+    return await this.getProductById(insertedId);
   }
 
   // Update product
@@ -189,7 +190,7 @@ class ProductService {
       throw new Error('Product not found');
     }
 
-    const writeData = await this.normalizeWritePayload(updateData);
+    const writeData = await this.normalizeWritePayload(updateData, { generateSlug: false });
 
     // Check if new slug conflicts with existing products
     if (writeData.slug && writeData.slug !== existingProduct.slug) {
@@ -206,20 +207,20 @@ class ProductService {
         updated_at: new Date().toISOString()
       })
       .eq('id', parseInt(id))
-      .select(`
-        *,
-        categories (
-          name,
-          slug
-        )
-      `)
-      .single();
+      .select('id');
 
     if (error) {
       throw new Error(`Failed to update product: ${error.message}`);
     }
 
-    return data;
+    const updatedId = Array.isArray(data) ? data[0]?.id : data?.id;
+    if (!updatedId) {
+      const err = new Error('Update was blocked (likely RLS). Add SUPABASE_SERVICE_ROLE_KEY or disable RLS for products.');
+      err.status = 403;
+      throw err;
+    }
+
+    return await this.getProductById(updatedId);
   }
 
   // Delete product
@@ -230,13 +231,21 @@ class ProductService {
       throw new Error('Product not found');
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('products')
       .delete()
-      .eq('id', parseInt(id));
+      .eq('id', parseInt(id))
+      .select('id');
 
     if (error) {
       throw new Error(`Failed to delete product: ${error.message}`);
+    }
+
+    const deletedId = Array.isArray(data) ? data[0]?.id : data?.id;
+    if (!deletedId) {
+      const err = new Error('Delete was blocked (likely RLS). Add SUPABASE_SERVICE_ROLE_KEY or disable RLS for products.');
+      err.status = 403;
+      throw err;
     }
 
     return existingProduct;

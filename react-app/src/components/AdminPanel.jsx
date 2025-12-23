@@ -56,10 +56,19 @@ const AdminPanel = ({ isOpen, onClose, products, orders, onAddProduct, onUpdateP
   const handleAddProduct = (e) => {
     e.preventDefault();
     const images = (newProduct.images || []).map(v => String(v || '').trim()).filter(Boolean);
+    const price = parseFloat(newProduct.price);
+    if (Number.isNaN(price)) {
+      toast.error('Please enter a valid price');
+      return;
+    }
     const product = {
       ...newProduct,
+      category_id: newProduct.category === 'living-room' ? 1 : 
+                 newProduct.category === 'bedroom' ? 2 : 
+                 newProduct.category === 'dining' ? 3 : 
+                 newProduct.category === 'office' ? 4 : 1,
       images,
-      price: parseFloat(newProduct.price),
+      price,
       featured: false
     };
     onAddProduct(product);
@@ -85,14 +94,23 @@ const AdminPanel = ({ isOpen, onClose, products, orders, onAddProduct, onUpdateP
   const handleUpdateProduct = (e) => {
     e.preventDefault();
     const images = (editProduct.images || []).map(v => String(v || '').trim()).filter(Boolean);
+    const price = parseFloat(editProduct.price);
+    if (Number.isNaN(price)) {
+      toast.error('Please enter a valid price');
+      return;
+    }
     const updatedProduct = {
       name: editProduct.name,
-      category: editProduct.category,
-      price: parseFloat(editProduct.price),
+      category_id: editProduct.category === 'living-room' ? 1 : 
+                 editProduct.category === 'bedroom' ? 2 : 
+                 editProduct.category === 'dining' ? 3 : 
+                 editProduct.category === 'office' ? 4 : 1,
+      price,
       description: editProduct.description,
       images,
       inStock: editProduct.inStock
     };
+
     onUpdateProduct(editingProduct.id, updatedProduct);
     setEditingProduct(null);
     setEditProduct({

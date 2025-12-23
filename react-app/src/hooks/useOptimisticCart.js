@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { cartAPI } from '../services/api';
 
 export const useOptimisticCart = (user, products, setCart, cart) => {
   const [cartLoading, setCartLoading] = useState({});
@@ -12,7 +12,6 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       return;
     }
 
-    const userId = user.uid || user.id;
     const operationId = `add-${productId}-${Date.now()}`;
     
     // Set loading state for this specific operation
@@ -47,51 +46,18 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       });
 
       // Perform backend operation asynchronously
-      const { data: existingItem } = await supabase
-        .from("cart_items")
-        .select("id, quantity")
-        .eq("user_id", userId)
-        .eq("product_id", productId)
-        .single();
-
-      let result;
-      if (existingItem) {
-        // Update existing item
-        const { data } = await supabase
-          .from("cart_items")
-          .update({ 
-            quantity: existingItem.quantity + quantity,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", existingItem.id)
-          .select()
-          .single();
-        result = data;
-      } else {
-        // Add new item
-        const { data } = await supabase
-          .from("cart_items")
-          .insert({
-            user_id: userId,
-            product_id: productId,
-            quantity: quantity,
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-        result = data;
-      }
+      const result = await cartAPI.addToCart(productId, quantity);
 
       // Replace optimistic item with real data
       setCart(prev => prev.map(item => 
-        item.operationId === operationId && result
+        item.operationId === operationId && result?.data
           ? {
-              id: result.id || item.id,
-              productId: result.product_id || item.productId,
+              id: result.data.id || item.id,
+              productId: result.data.product_id || item.productId,
               name: originalProduct?.name || 'Unknown Product',
               price: originalProduct?.price || 0,
               image: originalProduct?.images?.[0] || '/placeholder.jpg',
-              quantity: result.quantity || item.quantity
+              quantity: result.data.quantity || item.quantity
             }
           : item
       ));
@@ -117,12 +83,12 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
 
   // Optimistic remove from cart
   const removeFromCartOptimistic = useCallback(async (productId) => {
-    if (!user) return;
+    if (!user) return { success: false, error: 'User not authenticated' };
 
     const operationId = `remove-${productId}-${Date.now()}`;
     const cartItem = cart.find(item => item.productId === productId);
     
-    if (!cartItem) return;
+    if (!cartItem) return { success: false, error: 'Item not found in cart' };
 
     // Set loading state
     setCartLoading(prev => ({ ...prev, [productId]: 'removing' }));
@@ -136,12 +102,7 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       setCart(prev => prev.filter(item => item.productId !== productId));
 
       // Perform backend operation asynchronously
-      const { error } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("id", cartItem.id || cartItem.productId);
-
-      if (error) throw error;
+      await cartAPI.removeFromCart(productId);
 
       return { success: true };
     } catch (error) {
@@ -168,12 +129,12 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       return await removeFromCartOptimistic(productId);
     }
 
-    if (!user) return;
+    if (!user) return { success: false, error: 'User not authenticated' };
 
     const operationId = `update-${productId}-${Date.now()}`;
-    const cartItem = cart.find(item => item.productId === productId);
+    const cartItem = cart.find(item => item.productId === productId || item.id === productId);
     
-    if (!cartItem) return;
+    if (!cartItem) return { success: false, error: 'Item not found in cart' };
 
     // Set loading state
     setCartLoading(prev => ({ ...prev, [productId]: 'updating' }));
@@ -185,21 +146,13 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
     try {
       // Optimistic UI update - update immediately
       setCart(prev => prev.map(item => 
-        item.productId === productId 
+        (item.productId === productId || item.id === productId)
           ? { ...item, quantity: newQuantity }
           : item
       ));
 
       // Perform backend operation asynchronously
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ 
-          quantity: newQuantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", cartItem.id || cartItem.productId);
-
-      if (error) throw error;
+      await cartAPI.updateCartItemQuantity(productId, newQuantity);
 
       return { success: true };
     } catch (error) {
@@ -207,7 +160,7 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       
       // Revert optimistic update on error
       setCart(prev => prev.map(item => 
-        item.productId === productId 
+        (item.productId === productId || item.id === productId)
           ? { ...item, quantity: originalQuantity }
           : item
       ));
@@ -226,7 +179,7 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
 
   // Clear cart optimistically
   const clearCartOptimistic = useCallback(async () => {
-    if (!user) return;
+    if (!user) return { success: false, error: 'User not authenticated' };
 
     const operationId = `clear-${Date.now()}`;
     
@@ -242,13 +195,7 @@ export const useOptimisticCart = (user, products, setCart, cart) => {
       setCart([]);
 
       // Perform backend operation asynchronously
-      const userId = user.uid || user.id;
-      const { error } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("user_id", userId);
-
-      if (error) throw error;
+      await cartAPI.clearCart();
 
       return { success: true };
     } catch (error) {

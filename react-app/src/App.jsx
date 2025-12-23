@@ -11,7 +11,7 @@ import { useAuth } from './context/AuthContext';
 import { scrollToSection } from './utils/helpers';
 import { useOptimisticCart } from './hooks/useOptimisticCart';
 import { useDataPreloader } from './hooks/useDataPreloader';
-import { productsAPI } from './services/api';
+import { productsAPI, wishlistAPI } from './services/api';
 import { useSearch } from './hooks/useSearch';
 import { 
   getCartItems, 
@@ -289,41 +289,30 @@ function App() {
 
   // Wishlist functions
   const toggleWishlist = async (productId) => {
-  if (!user) {
-    toast.error("Please login to manage wishlist");
-    return;
-  }
-  
-  const userId = user.uid || user.id;
-  if (!userId) return;
-  
-  const product = products.find(p => p.id === productId);
-  if (!product) return;
-  
-  try {
-    await toggleWishlistDB(userId, productId);
+    if (!user) {
+      toast.error("Please login to manage wishlist");
+      return;
+    }
     
-    // Update local state
-    setWishlist(prevWishlist => {
-      const existingIndex = prevWishlist.findIndex(item => item.id === productId);
-      if (existingIndex > -1) {
-        toast.info(`💔 ${product.name} removed from wishlist`);
-        return prevWishlist.filter(item => item.id !== productId);
-      } else {
-        toast.success(`❤️ ${product.name} added to wishlist!`);
-        return [...prevWishlist, {
-          id: productId,
-          name: product.name,
-          price: product.price,
-          image: product.images[0]
-        }];
-      }
-    });
-  } catch (error) {
-    console.error('Error toggling wishlist:', error);
-    toast.error("Failed to update wishlist");
-  }
-};
+    try {
+      await wishlistAPI.toggleWishlist(productId);
+      
+      // Update local state
+      setWishlist(prevWishlist => {
+        const existingIndex = prevWishlist.findIndex(item => item.id === productId);
+        if (existingIndex > -1) {
+          return prevWishlist.filter(item => item.id !== productId);
+        } else {
+          const product = products.find(p => p.id === productId);
+          return product ? [...prevWishlist, product] : prevWishlist;
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      toast.error("Failed to update wishlist");
+    }
+  };
 
   const removeFromWishlist = (productId) => {
     setWishlist(prev => prev.filter(item => item.id !== productId));

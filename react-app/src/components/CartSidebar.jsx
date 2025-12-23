@@ -25,7 +25,7 @@ const CartSidebar = ({ isOpen, cart, onClose, onUpdateQuantity, onRemove, onCont
           </div>
         ) : (
           cart.map(item => (
-            <div key={item.productId} style={{ 
+            <div key={item.productId || item.id || `cart-${Math.random()}`} style={{ 
               display: 'flex', 
               gap: '1rem', 
               padding: '1rem 0', 
@@ -81,7 +81,7 @@ const CartSidebar = ({ isOpen, cart, onClose, onUpdateQuantity, onRemove, onCont
                         cursor: 'pointer', 
                         fontSize: '0.9rem' 
                       }}
-                      onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => onUpdateQuantity(item.productId || item.id, item.quantity - 1)}
                     >
                       -
                     </button>
@@ -105,7 +105,7 @@ const CartSidebar = ({ isOpen, cart, onClose, onUpdateQuantity, onRemove, onCont
                         cursor: 'pointer', 
                         fontSize: '0.9rem' 
                       }}
-                      onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => onUpdateQuantity(item.productId || item.id, item.quantity + 1)}
                     >
                       +
                     </button>
@@ -119,7 +119,7 @@ const CartSidebar = ({ isOpen, cart, onClose, onUpdateQuantity, onRemove, onCont
                       border: 'none', 
                       fontSize: '1.2rem' 
                     }}
-                    onClick={() => onRemove(item.productId)}
+                    onClick={() => onRemove(item.productId || item.id)}
                   >
                     🗑️
                   </button>

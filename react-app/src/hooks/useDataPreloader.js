@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, getCartItems, getWishlistItems } from '../lib/supabase';
+import { cartAPI } from '../services/api';
 
 export const useDataPreloader = (user, products = []) => {
   const [preloadedData, setPreloadedData] = useState({
@@ -18,24 +18,9 @@ export const useDataPreloader = (user, products = []) => {
     try {
       const productIds = Array.isArray(products) ? products.map(p => p?.id).filter(Boolean) : [];
 
-      // Load all data in parallel for maximum performance
-      const [cartData, wishlistData, allProductReviews] = await Promise.all([
-        getCartItems(userId),
-        getWishlistItems(userId),
-        // Batch load all reviews at once
-        productIds.length
-          ? supabase
-            .from('reviews')
-            .select(`
-              *,
-              profiles:user_id (
-                name
-              )
-            `)
-            .in('product_id', productIds)
-            .order('created_at', { ascending: false })
-          : Promise.resolve({ data: [] })
-      ]);
+      // Load cart data using backend API
+      const cartResponse = await cartAPI.getCartItems();
+      const cartData = cartResponse?.data?.items || [];
 
       // Process cart data with product image fallback
       const formattedCart = cartData.map(item => {
@@ -49,24 +34,11 @@ export const useDataPreloader = (user, products = []) => {
         };
       });
 
-      // Process wishlist data
-      const formattedWishlist = wishlistData.map(item => {
-        return {
-          id: item.product_id,
-          name: item.products?.name || 'Unknown Product',
-          price: item.products?.price || 0,
-          image: item.products?.images?.[0] || '/placeholder.jpg'
-        };
-      });
+      // For now, keep wishlist empty since we don't have backend API for it yet
+      const formattedWishlist = [];
 
-      // Group reviews by product for efficient lookup
+      // For now, keep reviews empty since we don't have backend API for it yet
       const reviewsMap = {};
-      allProductReviews.data?.forEach(review => {
-        if (!reviewsMap[review.product_id]) {
-          reviewsMap[review.product_id] = [];
-        }
-        reviewsMap[review.product_id].push(review);
-      });
 
       setPreloadedData({
         cart: formattedCart,

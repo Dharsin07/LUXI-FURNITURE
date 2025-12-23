@@ -95,10 +95,6 @@ const Header = ({
           <li><NavLink to="/collections">Collections</NavLink></li>
           <li><NavLink to="/review">Reviews</NavLink></li>
           <li><a href="#contact" onClick={handleContactClick}>Contact</a></li>
-          {/* Admin link - show for all authenticated users */}
-          {isAuthenticated() && (
-            <li><button className="nav-link admin-nav-link" onClick={onAdminToggle}>Admin</button></li>
-          )}
         </ul>
 
         <div className="nav-actions">
