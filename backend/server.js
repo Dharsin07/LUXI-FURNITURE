@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+const path = require('path');
 require('dotenv').config();
 
 const productRoutes = require('./src/routes/productRoutes');
@@ -68,6 +69,9 @@ app.use('/api/products', (req, res, next) => {
   next();
 });
 
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../react-app/dist')));
+
 // Routes - Only products for now to test Supabase storage
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
@@ -77,6 +81,11 @@ app.use('/api/orders', orderRoutes);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Serve React app for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../react-app/dist/index.html'));
 });
 
 // Error handling

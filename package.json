@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "cd react-app && npm run build",
     "preview": "vite preview",
     "dev:react-app": "cd react-app && npm run dev",
     "start:react-app": "cd react-app && npm start",
     "start:backend": "cd backend && npm start",
-    "start": "concurrently \"npm run start:backend\" \"npm run dev:react-app\"",
+    "start": "cd backend && npm start",
+    "start:full": "concurrently \"npm run start:backend\" \"npm run start:react-app\"",
     "dev:full": "concurrently \"npm run start:backend\" \"npm run dev:react-app\"",
     "install:all": "npm install && cd react-app && npm install && cd ../backend && npm install"
   },
